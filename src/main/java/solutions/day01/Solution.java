@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.stream.Collectors;
 
 public class Solution {
     public static void main(String[] args) {
@@ -21,12 +20,11 @@ public class Solution {
                 increase++;
             }
         }
-        System.out.println("part1 answer = " + increase);
+        System.out.println("part1 = " + increase);
 
         List<Integer> subsets = new ArrayList<>();
         for (int i = 0; i < input.size() - 2; i++) {
-            int sum = input.subList(i, i + 3).stream()
-                    .collect(Collectors.summingInt(Integer::intValue));
+            int sum = input.subList(i, i + 3).stream().mapToInt(Integer::intValue).sum();
             subsets.add(sum);
         }
         increase = 0;
@@ -35,7 +33,7 @@ public class Solution {
                 increase++;
             }
         }
-        System.out.println("part2 answer = " + increase);
+        System.out.println("part2 = " + increase);
 
     }
 }
