@@ -1,7 +1,12 @@
 package solutions.day05;
 
+import java.awt.*;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Solution {
@@ -14,151 +19,71 @@ public class Solution {
             String currentLine = scanner.nextLine();
             input.add(currentLine);
         }
-        List<Point> allPointsPart1 = new ArrayList<>();
-        for (String s : input) {
-            String[] split = s.split(" -> ");
-            int a = 12;
-            String[] split1 = split[0].split(",");
-            String[] split2 = split[1].split(",");
-            int x1 = Integer.valueOf(split1[0]);
-            int y1 = Integer.valueOf(split1[1]);
-            int x2 = Integer.valueOf(split2[0]);
-            int y2 = Integer.valueOf(split2[1]);
-            allPointsPart1.addAll(getCoverPointsPart1(x1, y1, x2, y2));
-        }
-        Map<Point, Integer> coverPart1 = new HashMap<>();
-        for (Point p : allPointsPart1) {
-            Integer value = coverPart1.get(p);
-            if (value == null) {
-                value = 0;
-            }
-            value++;
-            coverPart1.put(p, value);
-        }
-        long counterPart1 = coverPart1.values().stream().filter(integer -> integer >= 2).count();
+
+        List<Point> pointsPart1 = readAllPoints(input, false);
+        long counterPart1 = countCoveredPoints(pointsPart1);
         System.out.println("part1 = " + counterPart1);
 
-        List<Point> allPointsPart2 = new ArrayList<>();
-        for (String s : input) {
-            String[] split = s.split(" -> ");
-            int a = 12;
-            String[] split1 = split[0].split(",");
-            String[] split2 = split[1].split(",");
-            int x1 = Integer.valueOf(split1[0]);
-            int y1 = Integer.valueOf(split1[1]);
-            int x2 = Integer.valueOf(split2[0]);
-            int y2 = Integer.valueOf(split2[1]);
-            allPointsPart2.addAll(getCoverPointsPart2(x1, y1, x2, y2));
-        }
-        Map<Point, Integer> coverPart2 = new HashMap<>();
-        for (Point p : allPointsPart2) {
-            Integer value = coverPart2.get(p);
-            if (value == null) {
-                value = 0;
-            }
-            value++;
-            coverPart2.put(p, value);
-        }
-        long counterPart2 = coverPart2.values().stream().filter(integer -> integer >= 2).count();
+        List<Point> pointsPart2 = readAllPoints(input, true);
+        long counterPart2 = countCoveredPoints(pointsPart2);
         System.out.println("part2 = " + counterPart2);
     }
 
-    public static List<Point> getCoverPointsPart1(int x1, int y1, int x2, int y2) {
-        List<Point> points = new ArrayList<>();
-        if (x1 == x2) {
-            if (y1 > y2) {
-                IntStream.rangeClosed(y2, y1).forEach(i -> points.add(new Point(x1, i)));
-            } else {
-                IntStream.rangeClosed(y1, y2).forEach(i -> points.add(new Point(x1, i)));
-            }
-
-        } else if (y1 == y2) {
-            if (x1 > x2) {
-                IntStream.rangeClosed(x2, x1).forEach(i -> points.add(new Point(i, y1)));
-            } else {
-                IntStream.rangeClosed(x1, x2).forEach(i -> points.add(new Point(i, y1)));
-            }
-        }
-        return points;
-
+    public static List<Point> readAllPoints(List<String> input, boolean withDiagonal) {
+        return input.stream().flatMap(s -> {
+            String[] splitPoints = s.split(" -> ");
+            String[] firstPoint = splitPoints[0].split(",");
+            String[] secondPoint = splitPoints[1].split(",");
+            int x1 = Integer.parseInt(firstPoint[0]);
+            int y1 = Integer.parseInt(firstPoint[1]);
+            int x2 = Integer.parseInt(secondPoint[0]);
+            int y2 = Integer.parseInt(secondPoint[1]);
+            return getPointsBetweenCoordinates(x1, y1, x2, y2, withDiagonal).stream();
+        }).collect(Collectors.toList());
     }
 
-    public static List<Point> getCoverPointsPart2(int x1, int y1, int x2, int y2) {
+    public static long countCoveredPoints(List<Point> points) {
+        return points
+                .stream()
+                .collect(Collectors.toMap(Function.identity(), v -> 1,
+                        Integer::sum))
+                .values()
+                .stream()
+                .filter(integer -> integer >= 2)
+                .count();
+    }
+
+    public static List<Point> getPointsBetweenCoordinates(int x1, int y1, int x2, int y2, boolean withDiagonal) {
         List<Point> points = new ArrayList<>();
         if (x1 == x2) {
-            if (y1 > y2) {
-                IntStream.rangeClosed(y2, y1).forEach(i -> points.add(new Point(x1, i)));
-            } else {
-                IntStream.rangeClosed(y1, y2).forEach(i -> points.add(new Point(x1, i)));
-            }
-
+            return IntStream.rangeClosed(Math.min(y1, y2), Math.max(y1, y2)).mapToObj(i -> new Point(x1, i)).toList();
         } else if (y1 == y2) {
-            if (x1 > x2) {
-                IntStream.rangeClosed(x2, x1).forEach(i -> points.add(new Point(i, y1)));
-            } else {
-                IntStream.rangeClosed(x1, x2).forEach(i -> points.add(new Point(i, y1)));
-            }
-        } else {
-            float angle = getAngle(x1, y1, x2, y2);
-            if (angle % 45 == 0) {
-                int startX;
-                int endX;
-                int startY;
-                int endY;
-                if (x1 > x2) {
-                    startX = x2;
-                    endX = x1;
-                    startY = y2;
-                    endY = y1;
+            return IntStream.rangeClosed(Math.min(x1, x2), Math.max(x1, x2)).mapToObj(i -> new Point(i, y1)).toList();
+        } else if (withDiagonal && isDiagonal(x1, y1, x2, y2)) {
+            boolean x1Greater = x1 > x2;
+            int startX = x1Greater ? x2 : x1;
+            int endX = x1Greater ? x1 : x2;
+            int startY = x1Greater ? y2 : y1;
+            int endY = x1Greater ? y1 : y2;
+            while (startX <= endX) {
+                points.add(new Point(startX, startY));
+                startX++;
+                if (startY > endY) {
+                    startY--;
                 } else {
-                    startX = x1;
-                    endX = x2;
-                    startY = y1;
-                    endY = y2;
-                }
-                while (startX <= endX) {
-                    points.add(new Point(startX, startY));
-                    startX++;
-                    if (startY > endY) {
-                        startY--;
-                    } else {
-                        startY++;
-                    }
+                    startY++;
                 }
             }
         }
         return points;
-
     }
 
-    public static float getAngle(int x1, int y1, int x2, int y2) {
+    public static boolean isDiagonal(int x1, int y1, int x2, int y2) {
         float angle = (float) Math.toDegrees(Math.atan2(y2 - y1, x2 - x1));
         if (angle < 0) {
             angle += 360;
         }
-        return angle;
-    }
-
-    static class Point {
-        public int x;
-        public int y;
-
-        public Point(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Point point = (Point) o;
-            return x == point.x && y == point.y;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(x, y);
-        }
+        return angle % 45 == 0;
     }
 }
+
