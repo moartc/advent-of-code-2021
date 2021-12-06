@@ -1,58 +1,53 @@
 package solutions.day06;
 
-import java.awt.*;
 import java.io.InputStream;
 import java.util.*;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.stream.Stream;
 
 public class Solution {
 
-    static Map<Integer, Long> dayToProd = new HashMap<>();
+    static Map<Integer, Long> dayToProducedNumbers = new ConcurrentSkipListMap<>();
 
     public static void main(String[] args) {
 
-//        InputStream is = Solution.class.getResourceAsStream("/day06.txt");
-//        Scanner scanner = new Scanner(is);
-        List<Integer> input = Arrays.asList(5, 3, 2, 2, 1, 1, 4, 1, 5, 5, 1, 3, 1, 5, 1, 2, 1, 4, 1, 2, 1, 2, 1, 4, 2, 4, 1, 5, 1, 3, 5, 4, 3, 3, 1, 4, 1, 3, 4, 4, 1, 5, 4, 3, 3, 2, 5, 1, 1, 3, 1, 4, 3, 2, 2, 3, 1, 3, 1, 3, 1, 5, 3, 5, 1, 3, 1, 4, 2, 1, 4, 1, 5, 5, 5, 2, 4, 2, 1, 4, 1, 3, 5, 5, 1, 4, 1, 1, 4, 2, 2, 1, 3, 1, 1, 1, 1, 3, 4, 1, 4, 1, 1, 1, 4, 4, 4, 1, 3, 1, 3, 4, 1, 4, 1, 2, 2, 2, 5, 4, 1, 3, 1, 2, 1, 4, 1, 4, 5, 2, 4, 5, 4, 1, 2, 1, 4, 2, 2, 2, 1, 3, 5, 2, 5, 1, 1, 4, 5, 4, 3, 2, 4, 1, 5, 2, 2, 5, 1, 4, 1, 5, 1, 3, 5, 1, 2, 1, 1, 1, 5, 4, 4, 5, 1, 1, 1, 4, 1, 3, 3, 5, 5, 1, 5, 2, 1, 1, 3, 1, 1, 3, 2, 3, 4, 4, 1, 5, 5, 3, 2, 1, 1, 1, 4, 3, 1, 3, 3, 1, 1, 2, 2, 1, 2, 2, 2, 1, 1, 5, 1, 2, 2, 5, 2, 4, 1, 1, 2, 4, 1, 2, 3, 4, 1, 2, 1, 2, 4, 2, 1, 1, 5, 3, 1, 4, 4, 4, 1, 5, 2, 3, 4, 4, 1, 5, 1, 2, 2, 4, 1, 1, 2, 1, 1, 1, 1, 5, 1, 3, 3, 1, 1, 1, 1, 4, 1, 2, 2, 5, 1, 2, 1, 3, 4, 1, 3, 4, 3, 3, 1, 1, 5, 5, 5, 2, 4, 3, 1, 4);
+        InputStream is = Solution.class.getResourceAsStream("/day06.txt");
+        Scanner scanner = new Scanner(Objects.requireNonNull(is));
+        List<Integer> input = Stream.of(scanner.nextLine().split(",")).map(Integer::valueOf).toList();
+        int nbOfDays = 80;
 
-        long ans = input.size();
-        for(Integer i : input) {
-            ans += getProd(i, 80);
+        long answerPart1 = input.size();
+        for (Integer number : input) {
+            answerPart1 += getNumberProducedLanternfishes(number, nbOfDays);
         }
-        System.out.println("part1 = " + ans);
+        System.out.println("part1 = " + answerPart1);
 
-        long ans2 = input.size();
-        for(Integer i : input) {
-            ans2 += getProd(i, 256);
+        nbOfDays = 256;
+        long answerPart2 = input.size();
+        for (Integer number : input) {
+            answerPart2 += getNumberProducedLanternfishes(number, nbOfDays);
         }
-        System.out.println("part2 = " + ans2);
+        System.out.println("part2 = " + answerPart2);
     }
 
-    static long getProd(int init, int toEnd) {
-        long res = 0;
-        List<Integer> prod = new ArrayList<>();
-        for (int i = 1; i <= toEnd; i++) {
-            if (init == 0) {
-                res++;
-                prod.add(i);
-                init = 6;
+    static long getNumberProducedLanternfishes(int initialDay, int daysToEnd) {
+        long result = 0;
+        List<Integer> productionDays = new ArrayList<>();
+        for (int day = 1; day <= daysToEnd; day++) {
+            if (initialDay == 0) {
+                result++;
+                productionDays.add(day);
+                initialDay = 6;
             } else {
-                init--;
+                initialDay--;
             }
         }
-        for (Integer produced : prod) {
-            Long intger = dayToProd.get(toEnd - produced);
-            if (intger != null) {
-                res += intger;
-            } else {
-                long num = getProd(8, toEnd - produced);
-                dayToProd.put(toEnd - produced, num);
-                res += num;
-            }
-        }
-        return res;
+        result += productionDays.stream()
+                .map(day -> dayToProducedNumbers.computeIfAbsent(daysToEnd - day,
+                        dayToAdd -> getNumberProducedLanternfishes(8, dayToAdd))
+                )
+                .mapToLong(Long::longValue)
+                .sum();
+        return result;
     }
 }
