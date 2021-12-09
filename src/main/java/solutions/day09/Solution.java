@@ -24,13 +24,12 @@ public class Solution {
                 }
             }
         }
-        System.out.println("part1 = " + part1 + ", " + (550 == part1));
-        List<Integer> sizes = new ArrayList<>();
-        for (Point l : lowestPoints) {
-            sizes.add(getBasinSize(l.x, l.y, locations));
-        }
-        int part2 = sizes.stream().sorted(Comparator.reverseOrder()).limit(3).reduce(1, (a, b) -> a * b);
-        System.out.println("part2 = " + part2 + ", " + (1100682 == part2));
+        System.out.println("part1 = " + part1);
+        int part2 = lowestPoints.stream()
+                .map(point -> getBasinSize(point.x, point.y, locations))
+                .sorted(Comparator.reverseOrder()).limit(3)
+                .reduce(1, (a, b) -> a * b);
+        System.out.println("part2 = " + part2);
     }
 
     static int getBasinSize(int x, int y, int[][] arr) {
@@ -50,8 +49,8 @@ public class Solution {
                 addLowerPoints(x, y + 1, arr, locations);
             }
         } else if (y == 0) {
-            int val = arr[y + 1][x];
-            if (val != 9 && val > current) {
+            int value = arr[y + 1][x];
+            if (value != 9 && value > current) {
                 locations.add(new Point(y + 1, x));
                 addLowerPoints(x, y + 1, arr, locations);
             }
@@ -62,7 +61,8 @@ public class Solution {
             }
         }
         if (x > 0 && x < arr[0].length - 1) {
-            if (arr[y][x - 1] != 9 && arr[y][x - 1] > current) {
+            int value = arr[y][x - 1];
+            if (value != 9 && value > current) {
                 locations.add(new Point(y, x - 1));
                 addLowerPoints(x - 1, y, arr, locations);
             }
