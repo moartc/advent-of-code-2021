@@ -20,8 +20,7 @@ public class Solution {
                 folds.add(line.substring(line.indexOf("g ") + 2));
             } else if (!line.isEmpty() && Character.isDigit(line.charAt(0))) {
                 String[] split = line.split(",");
-                Dot dot = new Dot(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
-                dots.add(dot);
+                dots.add(new Dot(Integer.parseInt(split[0]), Integer.parseInt(split[1])));
             }
         }
 
@@ -31,15 +30,14 @@ public class Solution {
         for (String fold : folds) {
             dots = fold(dots, fold);
         }
-        Set<Dot> dotSet = new HashSet<>(dots);
-        int maxX = dotSet.stream().max(Comparator.comparingInt(o -> o.x)).get().x;
-        int maxY = dotSet.stream().max(Comparator.comparingInt(o -> o.y)).get().y;
-        char[][] chars = new char[maxY + 1][maxX + 1];
-        for (Dot dot : dotSet) {
-            chars[dot.y][dot.x] = '#';
+        int maxX = dots.stream().max(Comparator.comparingInt(o -> o.x)).get().x;
+        int maxY = dots.stream().max(Comparator.comparingInt(o -> o.y)).get().y;
+        boolean[][] arrayToPrint = new boolean[maxY + 1][maxX + 1];
+        for (Dot dot : dots) {
+            arrayToPrint[dot.y][dot.x] = true;
         }
         System.out.println("part2:\n");
-        printArray(chars);
+        printArray(arrayToPrint);
     }
 
     private static Set<Dot> fold(Set<Dot> dots, String instruction) {
@@ -57,15 +55,11 @@ public class Solution {
         return dots;
     }
 
-    private static void printArray(char[][] array) {
-        for (char[] chars : array) {
+    private static void printArray(boolean[][] array) {
+        for (boolean[] chars : array) {
             StringBuilder sb = new StringBuilder();
             for (int j = 0; j < array[0].length; j++) {
-                if (chars[j] != 0) {
-                    sb.append("#");
-                } else {
-                    sb.append(" ");
-                }
+                sb.append(chars[j] ? "#" : " ");
             }
             System.out.println(sb);
         }
