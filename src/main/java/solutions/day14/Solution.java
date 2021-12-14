@@ -7,8 +7,10 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Solution {
 
@@ -17,34 +19,25 @@ public class Solution {
         URL resource = Solution.class.getResource("/day14.txt");
         List<String> lines = Files.lines(Paths.get(resource.getPath())).filter(Predicate.not(String::isEmpty)).toList();
         String template = lines.get(0);
-        Map<String, Character> pairs = lines.stream().skip(1).map(line -> line.split(" -> ")).collect(Collectors.toMap(s -> s[0], s -> s[1].charAt(0)));
+        Map<String, Character> insertionPairs = lines.stream().skip(1).map(line -> line.split(" -> "))
+                .collect(Collectors.toMap(s -> s[0], s -> s[1].charAt(0)));
+        Map<String, Long> templateMap = IntStream.range(0, template.length() - 1)
+                .mapToObj(i -> template.substring(i, i + 2))
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
-        Map<String, Long> startMap = new HashMap<>();
-        for (int i = 0; i < template.length() - 1; i++) {
-            String key = template.substring(i, i + 2);
-            if (!startMap.containsKey(key)) {
-                startMap.put(key, 1L);
-            } else {
-                startMap.put(key, startMap.get(key) + 1);
-            }
+        System.out.println("part1 = " + getResult(new HashMap<>(templateMap), insertionPairs, 10));
+        System.out.println("part2 = " + getResult(new HashMap<>(templateMap), insertionPairs, 40));
+    }
+
+    private static Long getResult(Map<String, Long> startMap, Map<String, Character> insertionPairs, int nbOfSteps) {
+        for (int i = 0; i < nbOfSteps; i++) {
+            startMap = step(startMap, insertionPairs);
         }
-        Map<String, Long> mapPart1 = step(new HashMap<>(startMap), pairs);
-        for (int i = 1; i < 10; i++) {
-            mapPart1 = step(mapPart1, pairs);
-        }
-        Map<Character, Long> collectPart1 = mapPart1.entrySet().stream().collect(Collectors.groupingBy(e -> e.getKey().charAt(0), Collectors.summingLong(Map.Entry::getValue)));
+        Map<Character, Long> collectPart1 = startMap.entrySet().stream()
+                .collect(Collectors.groupingBy(e -> e.getKey().charAt(0), Collectors.summingLong(Map.Entry::getValue)));
         Long maxPart1 = collectPart1.values().stream().max(Long::compare).get();
         Long minPart1 = collectPart1.values().stream().min(Long::compare).get();
-        System.out.println("part1 = " + (maxPart1 - minPart1 - 1));
-
-        Map<String, Long> mapPart2 = step(new HashMap<>(startMap), pairs);
-        for (int i = 1; i < 40; i++) {
-            mapPart2 = step(mapPart2, pairs);
-        }
-        Map<Character, Long> collectPart2 = mapPart2.entrySet().stream().collect(Collectors.groupingBy(e -> e.getKey().charAt(0), Collectors.summingLong(Map.Entry::getValue)));
-        Long maxPart2 = collectPart2.values().stream().max(Long::compare).get();
-        Long minPart2 = collectPart2.values().stream().min(Long::compare).get();
-        System.out.println("part2 = " + (maxPart2 - minPart2 - 1));
+        return maxPart1 - minPart1 - 1;
     }
 
     private static Map<String, Long> step(Map<String, Long> map, Map<String, Character> mapping) {
@@ -60,10 +53,7 @@ public class Solution {
     }
 
     private static void addKeyToMap(String key, Map<String, Long> map, Long value) {
-        if (!map.containsKey(key)) {
-            map.put(key, value);
-        } else {
-            map.put(key, map.get(key) + value);
-        }
+        map.computeIfPresent(key, (k, v) -> v + value);
+        map.computeIfAbsent(key, (k) -> value);
     }
 }
