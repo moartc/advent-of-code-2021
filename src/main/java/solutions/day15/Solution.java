@@ -20,37 +20,31 @@ public class Solution {
 
         for (int y = 0; y < lines.size(); y++) {
             for (int x = 0; x < lines.get(0).length(); x++) {
-                int i = lines.get(y).charAt(x) - '0';
-                map[y][x] = i;
+                map[y][x] = lines.get(y).charAt(x) - '0';
             }
         }
-
         int part1 = findShortestPath(map) - map[0][0];
         System.out.println("part1 = " + part1);
 
-        int[][] map2 = new int[lines.size() * 5][lines.size() * 5];
+        int[][] mapPart2 = new int[lines.size() * 5][lines.size() * 5];
         for (int i = 0; i < map.length; i++) {
-            System.arraycopy(map[i], 0, map2[i], 0, map.length);
+            System.arraycopy(map[i], 0, mapPart2[i], 0, map.length);
         }
-        for (int i = 0; i < map2.length; i++) {
-            for (int j = 0; j < map2.length; j++) {
-                int tempI = i % map.length;
-                int tempJ = j % map.length;
-                int newVal = getNewVal(map[tempI][tempJ], (i / map.length), (j / map.length));
-                map2[i][j] = newVal;
+        for (int newCol = 0; newCol < mapPart2.length; newCol++) {
+            for (int newRow = 0; newRow < mapPart2.length; newRow++) {
+                int colFromMap = newCol % map.length;
+                int rowFromMap = newRow % map.length;
+                int newVal = getNewValue(map[colFromMap][rowFromMap], newCol / map.length, newRow / map.length);
+                mapPart2[newCol][newRow] = newVal;
             }
         }
-        int part2 = findShortestPath(map2) - map[0][0];
+        int part2 = findShortestPath(mapPart2) - map[0][0];
         System.out.println("part2 = " + part2);
     }
 
-    static int getNewVal(int current, int x, int y) {
-        if (current + x + y < 10) {
-            return current + x + y;
-        } else {
-            int newV = current + x + y;
-            return (newV % 10) + 1;
-        }
+    static int getNewValue(int current, int x, int y) {
+        int newValue = current + x + y;
+        return newValue < 10 ? newValue : (newValue % 10) + 1;
     }
 
     public static int findShortestPath(int[][] array) {
@@ -64,17 +58,17 @@ public class Solution {
         Queue<Cell> queue = new PriorityQueue<>(array.length * array.length, Comparator.comparingInt(o -> o.distance));
         queue.add(new Cell(0, 0, dist[0][0]));
         while (!queue.isEmpty()) {
-            Cell curr = queue.poll();
+            Cell current = queue.poll();
             for (int i = 0; i < 4; i++) {
-                int row = curr.x + dx[i];
-                int col = curr.y + dy[i];
+                int row = current.x + dx[i];
+                int col = current.y + dy[i];
                 if (row >= 0 && row < array.length && col >= 0 && col < array.length) {
-                    if (dist[row][col] > dist[curr.x][curr.y] + array[row][col]) {
+                    if (dist[row][col] > dist[current.x][current.y] + array[row][col]) {
                         if (dist[row][col] != Integer.MAX_VALUE) {
                             Cell adj = new Cell(row, col, dist[row][col]);
                             queue.remove(adj);
                         }
-                        dist[row][col] = dist[curr.x][curr.y] + array[row][col];
+                        dist[row][col] = dist[current.x][current.y] + array[row][col];
                         queue.add(new Cell(row, col, dist[row][col]));
                     }
                 }
