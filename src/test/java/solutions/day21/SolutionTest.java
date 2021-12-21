@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+
 class SolutionTest {
 
     @Test
@@ -25,17 +26,7 @@ class SolutionTest {
     }
 
     @Test
-    void answerPart1Test() {
-        int startingPosition1 = 7;
-        int startingPosition2 = 9;
-        long expected = 1234;
-        long actual = Solution.answerPart1(startingPosition1, startingPosition2);
-        assertEquals(expected, actual);
-    }
-
-    @Test
     void getNextPosition() {
-
         assertEquals(10, Solution.getNextPosition(4, 6));
         assertEquals(3, Solution.getNextPosition(8, 15));
         assertEquals(4, Solution.getNextPosition(10, 14));

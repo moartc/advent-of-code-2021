@@ -1,126 +1,95 @@
 package solutions.day21;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Solution {
 
-    private static Logger log = LogManager.getLogger(Solution.class);
+    private static final Map<Universe, Pair<Long, Long>> universeToResult = new HashMap<>();
 
     public static void main(String[] args) throws IOException {
 
         URL resource = solutions.day16.Solution.class.getResource("/day21.txt");
         List<String> lines = Files.lines(Paths.get(resource.getPath())).toList();
 
-        int firstStartingPosition = Integer.parseInt(lines.get(0).substring(lines.get(0).indexOf(":") + 1));
-        int secondStartingPosition = Integer.parseInt(lines.get(0).substring(lines.get(0).indexOf(":") + 1));
-
-
-//        System.out.println("part1 = " + answerPart1(firstStartingPosition, secondStartingPosition));
-        System.out.println("part2 = ");
+        int firstStartingPosition = Integer.parseInt(lines.get(0).substring(lines.get(0).indexOf(":") + 2));
+        int secondStartingPosition = Integer.parseInt(lines.get(1).substring(lines.get(1).indexOf(":") + 2));
+        System.out.println("part1 = " + answerPart1(firstStartingPosition, secondStartingPosition));
+        System.out.println("part2 = " + answerPart2(firstStartingPosition, secondStartingPosition));
     }
 
-    static long answerPart1(int firstStartingPosition, int secondStartingPosition) {
+    static long answerPart1(int firstPlayerPosition, int secondPlayerPosition) {
 
         long score1 = 0;
-        int currentPosition1 = firstStartingPosition;
         long score2 = 0;
-        int currentPosition2 = secondStartingPosition;
-
         int num = 0;
-        while (score1 <= 1000 || score2 <= 1000) {
-            long move1 = getNextRollNumberSum((3 * num) + 1);
-            log.info("move1 {}", move1);
-            currentPosition1 = getNextPosition(currentPosition1, move1);
-            log.info("pos1 {}", currentPosition1);
-            score1 += currentPosition1;
+        while (true) {
+            firstPlayerPosition = getNextPosition(firstPlayerPosition, getNextRollNumberSum(num));
+            score1 += firstPlayerPosition;
             if (score1 >= 1000)
                 break;
-            log.info("play1 pos = {} score = {}", currentPosition1, score1);
             num++;
-            long move2 = getNextRollNumberSum((3 * num) + 1);
-            log.info("move2 {}", move2);
-            currentPosition2 = getNextPosition(currentPosition2, move2);
-            log.info("pos2 {}", currentPosition2);
-            score2 += currentPosition2;
+            secondPlayerPosition = getNextPosition(secondPlayerPosition, getNextRollNumberSum(num));
+            score2 += secondPlayerPosition;
             num++;
-            log.info("play2 pos = {} score = {}", currentPosition2, score2);
         }
-
-        long lowerScore = Math.min(score1, score2);
-        log.info("lower score = {}", lowerScore);
-        long diceRoll = (num + 1) * 3;
-        log.info("dice rolled {} times", diceRoll);
-        long result = diceRoll * lowerScore;
-        log.info("result {}", result);
-
-        return result;
+        return (num + 1) * 3 * Math.min(score1, score2);
     }
 
     static long answerPart2(int firstStartingPosition, int secondStartingPosition) {
 
-        playGame(0, firstStartingPosition, 0, secondStartingPosition, true);
-        return Math.max(win1, win2);
+        Pair<Long, Long> longLongPair = playGame(0, firstStartingPosition, 0, secondStartingPosition, true, 0, 0);
+        return Math.max(longLongPair.getLeft(), longLongPair.getRight());
     }
 
-    static long win1 = 0;
-    static long win2 = 0;
-
-    static void playGame(long s1, int pos1, long s2, int pos2, boolean startFirst) {
-        long score1 = s1;
-        int currentPosition1 = pos1;
-        long score2 = s2;
-        int currentPosition2 = pos2;
-
-        while (score1 <= 21 || score2 <= 21) {
-            if (startFirst) {
-                int newPos1 = getNextPosition(currentPosition1, 1);
-                int newPos2 = getNextPosition(currentPosition1, 2);
-                int newPos3 = getNextPosition(currentPosition1, 3);
-                if (score1 + newPos1 >= 21) {
-                    win1++;
-                    break;
-                }
-                if (score1 + newPos2 >= 21) {
-                    win1++;
-                    break;
-                }
-                if (score1 + newPos3 >= 21) {
-                    win1++;
-                    break;
-                }
-                playGame(score1 + newPos1, newPos1, score2, pos2, false);
-                playGame(score1 + newPos2, newPos2, score2, pos2, false);
-                playGame(score1 + newPos3, newPos3, score2, pos2, false);
-            } else {
-                int newPos1 = getNextPosition(currentPosition2, 1);
-                int newPos2 = getNextPosition(currentPosition2, 2);
-                int newPos3 = getNextPosition(currentPosition2, 3);
-                if (score2 + newPos1 >= 21) {
-                    win2++;
-                    break;
-                }
-
-                if (score2 + newPos2 >= 21) {
-                    win2++;
-                    break;
-                }
-                if (score2 + newPos3 >= 21) {
-                    win2++;
-                    break;
-                }
-                playGame(score1, pos1, score2 + newPos1, newPos1, true);
-                playGame(score1, pos1, score2 + newPos2, newPos2, true);
-                playGame(score1, pos1, score2 + newPos3, newPos3, true);
-            }
-            log.info("win1 = {}, win2 = {}", win1, win2);
+    static Pair<Long, Long> playGame(long score1, int position1, long score2, int position2, boolean firstPlayerTurn, int round, int currentRoll) {
+        if (score1 >= 21) {
+            return Pair.of(1L, 0L);
         }
+        if (score2 >= 21) {
+            return Pair.of(0L, 1L);
+        }
+        Universe universe = new Universe(score1, position1, score2, position2, firstPlayerTurn, round, currentRoll);
+        Pair<Long, Long> universeResult = universeToResult.get(universe);
+        if (universeResult != null) {
+            return universeResult;
+        } else {
+            List<Pair<Long, Long>> results = new ArrayList<>();
+            for (int i : List.of(1, 2, 3)) {
+                if (round < 2) {
+                    currentRoll += 1;
+                    results.add(playGame(score1, position1, score2, position2, firstPlayerTurn, round + 1, currentRoll));
+                } else {
+                    int newPosition = getNextPosition(firstPlayerTurn ? position1 : position2, currentRoll + i);
+                    if (firstPlayerTurn) {
+                        results.add(playGame(score1 + newPosition, newPosition, score2, position2, false, 0, 0));
+                    } else {
+                        results.add(playGame(score1, position1, score2 + newPosition, newPosition, true, 0, 0));
+                    }
+                }
+            }
+            Pair<Long, Long> sum = sumListOfPairs(results);
+            universeToResult.put(universe, Pair.of(sum.getLeft(), sum.getRight()));
+            return sum;
+        }
+    }
+
+    private static Pair<Long, Long> sumListOfPairs(List<Pair<Long, Long>> pairList) {
+        long first = 0;
+        long second = 0;
+        for (Pair<Long, Long> pair : pairList) {
+            first += pair.getLeft();
+            second += pair.getRight();
+        }
+        return Pair.of(first, second);
     }
 
     static int getNextPosition(int start, long move) {
@@ -128,10 +97,16 @@ public class Solution {
         return pos == 0 ? 10 : (int) pos;
     }
 
-    static long getNextRollNumberSum(long prevFirst) {
-        return prevFirst + 1 + prevFirst + 2 + prevFirst;
+    private static long getNextRollNumberSum(long number) {
+        return 9 * number + 6;
+    }
+
+    record Universe(long score1, int position1, long score2, int position2, boolean firstPlayerTurn, int round,
+                    int currentRoll) {
     }
 }
+
+
 
 
 
