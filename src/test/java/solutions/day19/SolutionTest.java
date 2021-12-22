@@ -13,17 +13,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SolutionTest {
 
-    SolutionTest() throws IOException {
+    @Test
+    void getAnswerPart1ExampleTest() throws IOException {
+
+        URL resource = solutions.day16.Solution.class.getResource("/day19_test.txt");
+        List<String> lines = Files.lines(Paths.get(resource.getPath())).filter(Predicate.not(String::isEmpty)).toList();
+        int testAnswer = Solution.getFirstPartAnswer(lines);
+        assertEquals(79, testAnswer);
     }
 
     @Test
-    void getTestAnswerV2() throws IOException {
+    void getAnswerPart2ExampleTest() throws IOException {
 
-        URL resource = solutions.day16.Solution.class.getResource("/day19_test2.txt");
+        URL resource = solutions.day16.Solution.class.getResource("/day19_test.txt");
         List<String> lines = Files.lines(Paths.get(resource.getPath())).filter(Predicate.not(String::isEmpty)).toList();
-        int testAnswer = Solution.getTestAnswer2(lines);
-        assertEquals(79, testAnswer);
-
+        int testAnswer = Solution.getSecondPartAnswer(lines);
+        assertEquals(3621, testAnswer);
     }
-
 }
