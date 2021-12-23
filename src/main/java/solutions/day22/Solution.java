@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -26,6 +27,8 @@ public class Solution {
     }
 
     static long answerPart2(List<String> lines) {
+
+        List<Cube> cubeList = new ArrayList<>();
         for (String line : lines) {
             log.info("perform line {}", line);
             String modeString = line.substring(0, line.indexOf(" "));
@@ -50,13 +53,56 @@ public class Solution {
             int zStart = Integer.parseInt(zStartString);
             int zEnd = Integer.parseInt(zEndString);
 
-
             boolean mode = modeString.equals("on");
 
+            Cube cube = new Cube(xStart, xEnd, yStart, yEnd, zStart, zEnd);
+            updateCubes(cube, cubeList);
         }
+
+
+
         return 12L;
     }
 
+    static List<Cube> readAllCuboids(List<String> lines) {
+        List<Cube> cubes = new ArrayList<>();
+        for (String line : lines) {
+            log.info("perform line {}", line);
+            String modeString = line.substring(0, line.indexOf(" "));
+            String xOption = line.substring(line.indexOf("x=") + 2, line.indexOf(",y="));
+            String xStartString = xOption.substring(0, xOption.indexOf('.'));
+            String xEndString = xOption.substring(xOption.indexOf(".") + 2);
+
+            String yOption = line.substring(line.indexOf("y=") + 2, line.indexOf(",z="));
+            String yStartString = yOption.substring(0, yOption.indexOf('.'));
+            String yEndString = yOption.substring(yOption.indexOf(".") + 2);
+
+            String zOption = line.substring(line.indexOf("z=") + 2);
+            String zStartString = zOption.substring(0, zOption.indexOf('.'));
+            String zEndString = zOption.substring(zOption.indexOf(".") + 2);
+
+            int xStart = Integer.parseInt(xStartString);
+            int xEnd = Integer.parseInt(xEndString);
+
+            int yStart = Integer.parseInt(yStartString);
+            int yEnd = Integer.parseInt(yEndString);
+
+            int zStart = Integer.parseInt(zStartString);
+            int zEnd = Integer.parseInt(zEndString);
+
+            boolean mode = modeString.equals("on");
+            Cube cube = new Cube(xStart, xEnd, yStart, yEnd, zStart, zEnd);
+            cubes.add(cube);
+        }
+        return cubes;
+    }
+
+    static void updateCubes(Cube cube, List<Cube> cubeList) {
+        if(cubeList.isEmpty()) {
+            cubeList.add(cube);
+        }
+
+    }
 
     static long answerPart1(List<String> lines) {
         boolean[][][] cubes = getInitialCubes();
@@ -139,5 +185,23 @@ public class Solution {
     static boolean[][][] getInitialCubes() {
         boolean[][][] cubes = new boolean[101][101][101];
         return cubes;
+    }
+}
+
+class Cube {
+    int minX;
+    int maxX;
+    int minY;
+    int maxY;
+    int minZ;
+    int maxZ;
+
+    public Cube(int minX, int maxX, int minY, int maxY, int minZ, int maxZ) {
+        this.minX = minX;
+        this.maxX = maxX;
+        this.minY = minY;
+        this.maxY = maxY;
+        this.minZ = minZ;
+        this.maxZ = maxZ;
     }
 }
