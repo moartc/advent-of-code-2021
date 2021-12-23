@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 public class Solution {
@@ -28,81 +29,109 @@ public class Solution {
 
     static long answerPart2(List<String> lines) {
 
-        List<Cube> cubeList = new ArrayList<>();
+        List<Cube> allOnCubes = new ArrayList<>();
+        List<Cube> intersectionCubes = new ArrayList<>();
+        List<Cube> allOffCubes = new ArrayList<>();
+
         for (String line : lines) {
-            log.info("perform line {}", line);
-            String modeString = line.substring(0, line.indexOf(" "));
-            String xOption = line.substring(line.indexOf("x=") + 2, line.indexOf(",y="));
-            String xStartString = xOption.substring(0, xOption.indexOf('.'));
-            String xEndString = xOption.substring(xOption.indexOf(".") + 2);
-
-            String yOption = line.substring(line.indexOf("y=") + 2, line.indexOf(",z="));
-            String yStartString = yOption.substring(0, yOption.indexOf('.'));
-            String yEndString = yOption.substring(yOption.indexOf(".") + 2);
-
-            String zOption = line.substring(line.indexOf("z=") + 2);
-            String zStartString = zOption.substring(0, zOption.indexOf('.'));
-            String zEndString = zOption.substring(zOption.indexOf(".") + 2);
-
-            int xStart = Integer.parseInt(xStartString);
-            int xEnd = Integer.parseInt(xEndString);
-
-            int yStart = Integer.parseInt(yStartString);
-            int yEnd = Integer.parseInt(yEndString);
-
-            int zStart = Integer.parseInt(zStartString);
-            int zEnd = Integer.parseInt(zEndString);
-
-            boolean mode = modeString.equals("on");
-
-            Cube cube = new Cube(xStart, xEnd, yStart, yEnd, zStart, zEnd);
-            updateCubes(cube, cubeList);
+            Cube cube = createCube(line);
+            boolean isOn = isOnMode(line);
+            if (isOn) {
+                allOnCubes.add(cube);
+                List<Cube> cubeList = updateIntersectionCubes(cube, allOnCubes);
+                intersectionCubes.addAll(cubeList);
+                for (Cube newIntersection : cubeList) {
+                    log.info("found that intersection: {}", newIntersection);
+                }
+            } else {
+                allOffCubes.add(cube);
+            }
         }
-
-
-
-        return 12L;
+        return getFinalVolume(allOnCubes, intersectionCubes);
     }
 
-    static List<Cube> readAllCuboids(List<String> lines) {
-        List<Cube> cubes = new ArrayList<>();
-        for (String line : lines) {
-            log.info("perform line {}", line);
-            String modeString = line.substring(0, line.indexOf(" "));
-            String xOption = line.substring(line.indexOf("x=") + 2, line.indexOf(",y="));
-            String xStartString = xOption.substring(0, xOption.indexOf('.'));
-            String xEndString = xOption.substring(xOption.indexOf(".") + 2);
-
-            String yOption = line.substring(line.indexOf("y=") + 2, line.indexOf(",z="));
-            String yStartString = yOption.substring(0, yOption.indexOf('.'));
-            String yEndString = yOption.substring(yOption.indexOf(".") + 2);
-
-            String zOption = line.substring(line.indexOf("z=") + 2);
-            String zStartString = zOption.substring(0, zOption.indexOf('.'));
-            String zEndString = zOption.substring(zOption.indexOf(".") + 2);
-
-            int xStart = Integer.parseInt(xStartString);
-            int xEnd = Integer.parseInt(xEndString);
-
-            int yStart = Integer.parseInt(yStartString);
-            int yEnd = Integer.parseInt(yEndString);
-
-            int zStart = Integer.parseInt(zStartString);
-            int zEnd = Integer.parseInt(zEndString);
-
-            boolean mode = modeString.equals("on");
-            Cube cube = new Cube(xStart, xEnd, yStart, yEnd, zStart, zEnd);
-            cubes.add(cube);
+    static long getFinalVolume(List<Cube> allCubes, List<Cube> allIntersections) {
+        long finalTotalVolume = 0;
+        for(Cube cube : allCubes) {
+            finalTotalVolume += cube.getVolume();
         }
-        return cubes;
+        for(Cube intersectedCube : allIntersections) {
+            finalTotalVolume -= intersectedCube.getVolume();
+        }
+        return finalTotalVolume;
     }
 
-    static void updateCubes(Cube cube, List<Cube> cubeList) {
-        if(cubeList.isEmpty()) {
-            cubeList.add(cube);
+    static long getFinalVolumeForCube(Cube cube, List<Cube> allIntersections) {
+        long allIntersectedVolume = 0;
+        for(Cube intersection : allIntersections) {
+            allIntersectedVolume += getIntersectionCube(cube, intersection).getVolume();
         }
-
+        return cube.getVolume() - allIntersectedVolume;
     }
+
+    static List<Cube> updateIntersectionCubes(Cube newCube, List<Cube> allOnCubes) {
+        List<Cube> intersections = new ArrayList<>();
+        for (Cube addedCube : allOnCubes) {
+            if (!addedCube.equals(newCube)) {
+                Cube intersectionCube = getIntersectionCube(newCube, addedCube);
+                if (intersectionCube != null) {
+                    intersections.add(intersectionCube);
+                }
+            }
+        }
+        return intersections;
+    }
+
+    static Cube getIntersectionCube(Cube newCube, Cube existingCube) {
+        int higherMinX = Math.max(newCube.minX, existingCube.minX);
+        int lowerMaxX = Math.min(newCube.maxX, existingCube.maxX);
+        if (higherMinX <= lowerMaxX) {
+            int higherMinY = Math.max(newCube.minY, existingCube.minY);
+            int lowerMaxY = Math.min(newCube.maxY, existingCube.maxY);
+            if (higherMinY <= lowerMaxY) {
+                int higherMinZ = Math.max(newCube.minZ, existingCube.minZ);
+                int lowerMaxZ = Math.min(newCube.maxZ, existingCube.maxZ);
+                if (higherMinZ <= lowerMaxZ) {
+                    Cube intersectionCube = new Cube(higherMinX, lowerMaxX, higherMinY, lowerMaxY, higherMinZ, lowerMaxZ);
+                    log.info("will return new intersection cube {}", intersectionCube);
+                    return intersectionCube;
+                }
+            }
+        }
+        log.info("intersection doesn't exist");
+        return null;
+    }
+
+    static Cube createCube(String line) {
+        String xOption = line.substring(line.indexOf("x=") + 2, line.indexOf(",y="));
+        String xStartString = xOption.substring(0, xOption.indexOf('.'));
+        String xEndString = xOption.substring(xOption.indexOf(".") + 2);
+
+        String yOption = line.substring(line.indexOf("y=") + 2, line.indexOf(",z="));
+        String yStartString = yOption.substring(0, yOption.indexOf('.'));
+        String yEndString = yOption.substring(yOption.indexOf(".") + 2);
+
+        String zOption = line.substring(line.indexOf("z=") + 2);
+        String zStartString = zOption.substring(0, zOption.indexOf('.'));
+        String zEndString = zOption.substring(zOption.indexOf(".") + 2);
+
+        int xStart = Integer.parseInt(xStartString);
+        int xEnd = Integer.parseInt(xEndString);
+
+        int yStart = Integer.parseInt(yStartString);
+        int yEnd = Integer.parseInt(yEndString);
+
+        int zStart = Integer.parseInt(zStartString);
+        int zEnd = Integer.parseInt(zEndString);
+
+        return new Cube(xStart, xEnd, yStart, yEnd, zStart, zEnd);
+    }
+
+    static boolean isOnMode(String line) {
+        String modeString = line.substring(0, line.indexOf(" "));
+        return modeString.equals("on");
+    }
+
 
     static long answerPart1(List<String> lines) {
         boolean[][][] cubes = getInitialCubes();
@@ -203,5 +232,31 @@ class Cube {
         this.maxY = maxY;
         this.minZ = minZ;
         this.maxZ = maxZ;
+    }
+
+    public long getVolume() {
+        return ((maxX - minX) + 1)
+                * ((maxY - minY) + 1)
+                * ((maxZ - minZ) + 1);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Cube cube = (Cube) o;
+        return minX == cube.minX && maxX == cube.maxX && minY == cube.minY && maxY == cube.maxY && minZ == cube.minZ && maxZ == cube.maxZ;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(minX, maxX, minY, maxY, minZ, maxZ);
+    }
+
+    @Override
+    public String toString() {
+        return "x=" + minX + ".." + maxX +
+                ", y=" + minY + ".." + maxY +
+                ", z=" + minZ + ".." + maxZ;
     }
 }
