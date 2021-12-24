@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SolutionTest {
 
@@ -44,11 +44,31 @@ class SolutionTest {
     }
 
     @Test
-    void newSolutionTest1()  {
-        List<String> lines = List.of("on x=10..12,y=10..12,z=10..12","on x=11..13,y=11..13,z=11..13");
+    void newSolutionTest1() {
+        List<String> lines = List.of("on x=10..12,y=10..12,z=10..12",
+                "on x=11..13,y=11..13,z=11..13",
+                "off x=9..11,y=9..11,z=9..11",
+                "on x=10..10,y=10..10,z=10..10");
 
-        assertEquals(27, Solution.answerPart2(lines.subList(0,1)));
-        assertEquals(46, Solution.answerPart2(lines.subList(0,2)));
+        assertEquals(27, Solution.answerPart2(lines.subList(0, 1)));
+        assertEquals(46, Solution.answerPart2(lines.subList(0, 2)));
+//        assertEquals(38, Solution.answerPart2(lines.subList(0, 3)));
+//        assertEquals(39, Solution.answerPart2(lines));
+
+    }
+
+    @Test
+    void newSolutionTest2() {
+        List<String> lines = List.of("on x=10..12,y=10..12,z=10..12",
+                "on x=10..12,y=10..12,z=10..12",
+                "on x=10..12,y=10..12,z=10..12",
+                "on x=10..12,y=10..12,z=10..12");
+
+        assertEquals(27, Solution.answerPart2(lines.subList(0, 1)));
+        assertEquals(27, Solution.answerPart2(lines.subList(0, 2)));
+        assertEquals(27, Solution.answerPart2(lines.subList(0, 3)));
+        assertEquals(27, Solution.answerPart2(lines));
+
     }
 
     @Test

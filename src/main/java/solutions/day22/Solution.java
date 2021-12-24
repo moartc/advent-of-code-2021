@@ -27,58 +27,54 @@ public class Solution {
         System.out.println("part2 = " + answerPart2(lines));
     }
 
+
+
     static long answerPart2(List<String> lines) {
 
-        List<Cube> allOnCubes = new ArrayList<>();
+        List<Cube> allCubes = new ArrayList<>();
         List<Cube> intersectionCubes = new ArrayList<>();
         List<Cube> allOffCubes = new ArrayList<>();
 
         for (String line : lines) {
             Cube cube = createCube(line);
-            boolean isOn = isOnMode(line);
-            if (isOn) {
-                allOnCubes.add(cube);
-                List<Cube> cubeList = updateIntersectionCubes(cube, allOnCubes);
-                intersectionCubes.addAll(cubeList);
-                for (Cube newIntersection : cubeList) {
-                    log.info("found that intersection: {}", newIntersection);
-                }
+            List<Cube> allIntersectionCubes = getAllIntersectionCubes(cube, allCubes, false);
+            allCubes.add(cube);
+            allCubes.addAll(allIntersectionCubes);
+        }
+        return getResult(allCubes);
+    }
+
+    static long getResult(List<Cube> allCubes) {
+        long result = 0;
+        for (Cube allCube : allCubes) {
+            if (allCube.isOn) {
+                result += allCube.getVolume();
             } else {
-                allOffCubes.add(cube);
+                result -= allCube.getVolume();
             }
         }
-        return getFinalVolume(allOnCubes, intersectionCubes);
+        return result;
     }
 
-    static long getFinalVolume(List<Cube> allCubes, List<Cube> allIntersections) {
-        long finalTotalVolume = 0;
-        for(Cube cube : allCubes) {
-            finalTotalVolume += cube.getVolume();
-        }
-        for(Cube intersectedCube : allIntersections) {
-            finalTotalVolume -= intersectedCube.getVolume();
-        }
-        return finalTotalVolume;
-    }
 
-    static long getFinalVolumeForCube(Cube cube, List<Cube> allIntersections) {
-        long allIntersectedVolume = 0;
-        for(Cube intersection : allIntersections) {
-            allIntersectedVolume += getIntersectionCube(cube, intersection).getVolume();
-        }
-        return cube.getVolume() - allIntersectedVolume;
-    }
-
-    static List<Cube> updateIntersectionCubes(Cube newCube, List<Cube> allOnCubes) {
+    static List<Cube> getAllIntersectionCubes(Cube newCube, List<Cube> allOnCubes, boolean forIntersections) {
         List<Cube> intersections = new ArrayList<>();
+        List<Cube> fix = new ArrayList<>();
         for (Cube addedCube : allOnCubes) {
-            if (!addedCube.equals(newCube)) {
+            if (forIntersections || addedCube.isOn) {
                 Cube intersectionCube = getIntersectionCube(newCube, addedCube);
                 if (intersectionCube != null) {
+                    log.info("found intersection {}", intersectionCube);
+                    List<Cube> allIntersectionCubes = getAllIntersectionCubes(intersectionCube, intersections, true);// fix for intersected intersections
+                    for (var c : allIntersectionCubes) {
+                        c.isOn = true;
+                        fix.add(c);
+                    }
                     intersections.add(intersectionCube);
                 }
             }
         }
+        intersections.addAll(fix);
         return intersections;
     }
 
@@ -92,7 +88,7 @@ public class Solution {
                 int higherMinZ = Math.max(newCube.minZ, existingCube.minZ);
                 int lowerMaxZ = Math.min(newCube.maxZ, existingCube.maxZ);
                 if (higherMinZ <= lowerMaxZ) {
-                    Cube intersectionCube = new Cube(higherMinX, lowerMaxX, higherMinY, lowerMaxY, higherMinZ, lowerMaxZ);
+                    Cube intersectionCube = new Cube(higherMinX, lowerMaxX, higherMinY, lowerMaxY, higherMinZ, lowerMaxZ, false);
                     log.info("will return new intersection cube {}", intersectionCube);
                     return intersectionCube;
                 }
@@ -124,7 +120,12 @@ public class Solution {
         int zStart = Integer.parseInt(zStartString);
         int zEnd = Integer.parseInt(zEndString);
 
-        return new Cube(xStart, xEnd, yStart, yEnd, zStart, zEnd);
+        String modeString = line.substring(0, line.indexOf(" "));
+        boolean isOn = modeString.equals("on");
+
+        Cube cube = new Cube(xStart, xEnd, yStart, yEnd, zStart, zEnd, isOn);
+        log.info("cube {} created", cube);
+        return cube;
     }
 
     static boolean isOnMode(String line) {
@@ -224,14 +225,16 @@ class Cube {
     int maxY;
     int minZ;
     int maxZ;
+    boolean isOn;
 
-    public Cube(int minX, int maxX, int minY, int maxY, int minZ, int maxZ) {
+    public Cube(int minX, int maxX, int minY, int maxY, int minZ, int maxZ, boolean isOn) {
         this.minX = minX;
         this.maxX = maxX;
         this.minY = minY;
         this.maxY = maxY;
         this.minZ = minZ;
         this.maxZ = maxZ;
+        this.isOn = isOn;
     }
 
     public long getVolume() {
@@ -245,18 +248,19 @@ class Cube {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Cube cube = (Cube) o;
-        return minX == cube.minX && maxX == cube.maxX && minY == cube.minY && maxY == cube.maxY && minZ == cube.minZ && maxZ == cube.maxZ;
+        return minX == cube.minX && maxX == cube.maxX && minY == cube.minY && maxY == cube.maxY && minZ == cube.minZ && maxZ == cube.maxZ && isOn == cube.isOn;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(minX, maxX, minY, maxY, minZ, maxZ);
+        return Objects.hash(minX, maxX, minY, maxY, minZ, maxZ, isOn);
     }
 
     @Override
     public String toString() {
         return "x=" + minX + ".." + maxX +
                 ", y=" + minY + ".." + maxY +
-                ", z=" + minZ + ".." + maxZ;
+                ", z=" + minZ + ".." + maxZ +
+                ", isOn=" + isOn;
     }
 }
