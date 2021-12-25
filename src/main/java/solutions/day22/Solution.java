@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -14,68 +15,49 @@ import java.util.stream.IntStream;
 
 public class Solution {
 
-    private static Logger log = LogManager.getLogger(Solution.class);
-
+    private static final Logger log = LogManager.getLogger(Solution.class);
 
     public static void main(String[] args) throws IOException {
 
         URL resource = Solution.class.getResource("/day22.txt");
         List<String> lines = Files.lines(Paths.get(resource.getPath())).toList();
 
-
         System.out.println("part1 = " + answerPart1(lines));
         System.out.println("part2 = " + answerPart2(lines));
     }
 
+    static BigInteger answerPart2(List<String> lines) {
 
-
-    static long answerPart2(List<String> lines) {
-
-        List<Cube> allCubes = new ArrayList<>();
-        List<Cube> intersectionCubes = new ArrayList<>();
-        List<Cube> allOffCubes = new ArrayList<>();
+        List<Cube> finalCubesList = new ArrayList<>();
 
         for (String line : lines) {
             Cube cube = createCube(line);
-            List<Cube> allIntersectionCubes = getAllIntersectionCubes(cube, allCubes, false);
-            allCubes.add(cube);
-            allCubes.addAll(allIntersectionCubes);
+            List<Cube> list = new ArrayList<>();
+            for (Cube added : finalCubesList) {
+                Cube intersectionsCube = getIntersectionCube(cube, added);
+                if (intersectionsCube != null) {
+                    list.add(intersectionsCube);
+                }
+            }
+            finalCubesList.addAll(list);
+            if (cube.isOn) {
+                finalCubesList.add(cube);
+            }
         }
-        return getResult(allCubes);
+        return getResult(finalCubesList);
     }
 
-    static long getResult(List<Cube> allCubes) {
-        long result = 0;
+
+    static BigInteger getResult(List<Cube> allCubes) {
+        BigInteger result = BigInteger.ZERO;
         for (Cube allCube : allCubes) {
             if (allCube.isOn) {
-                result += allCube.getVolume();
+                result = result.add(allCube.getVolume());
             } else {
-                result -= allCube.getVolume();
+                result = result.subtract(allCube.getVolume());
             }
         }
         return result;
-    }
-
-
-    static List<Cube> getAllIntersectionCubes(Cube newCube, List<Cube> allOnCubes, boolean forIntersections) {
-        List<Cube> intersections = new ArrayList<>();
-        List<Cube> fix = new ArrayList<>();
-        for (Cube addedCube : allOnCubes) {
-            if (forIntersections || addedCube.isOn) {
-                Cube intersectionCube = getIntersectionCube(newCube, addedCube);
-                if (intersectionCube != null) {
-                    log.info("found intersection {}", intersectionCube);
-                    List<Cube> allIntersectionCubes = getAllIntersectionCubes(intersectionCube, intersections, true);// fix for intersected intersections
-                    for (var c : allIntersectionCubes) {
-                        c.isOn = true;
-                        fix.add(c);
-                    }
-                    intersections.add(intersectionCube);
-                }
-            }
-        }
-        intersections.addAll(fix);
-        return intersections;
     }
 
     static Cube getIntersectionCube(Cube newCube, Cube existingCube) {
@@ -88,13 +70,10 @@ public class Solution {
                 int higherMinZ = Math.max(newCube.minZ, existingCube.minZ);
                 int lowerMaxZ = Math.min(newCube.maxZ, existingCube.maxZ);
                 if (higherMinZ <= lowerMaxZ) {
-                    Cube intersectionCube = new Cube(higherMinX, lowerMaxX, higherMinY, lowerMaxY, higherMinZ, lowerMaxZ, false);
-                    log.info("will return new intersection cube {}", intersectionCube);
-                    return intersectionCube;
+                    return new Cube(higherMinX, lowerMaxX, higherMinY, lowerMaxY, higherMinZ, lowerMaxZ, !existingCube.isOn);
                 }
             }
         }
-        log.info("intersection doesn't exist");
         return null;
     }
 
@@ -123,16 +102,8 @@ public class Solution {
         String modeString = line.substring(0, line.indexOf(" "));
         boolean isOn = modeString.equals("on");
 
-        Cube cube = new Cube(xStart, xEnd, yStart, yEnd, zStart, zEnd, isOn);
-        log.info("cube {} created", cube);
-        return cube;
+        return new Cube(xStart, xEnd, yStart, yEnd, zStart, zEnd, isOn);
     }
-
-    static boolean isOnMode(String line) {
-        String modeString = line.substring(0, line.indexOf(" "));
-        return modeString.equals("on");
-    }
-
 
     static long answerPart1(List<String> lines) {
         boolean[][][] cubes = getInitialCubes();
@@ -179,13 +150,10 @@ public class Solution {
         int zStart = Integer.parseInt(zStartString);
         int zEnd = Integer.parseInt(zEndString);
 
-
         if (!shouldPerformStep(xStart, xEnd, yStart, yEnd, zStart, zEnd)) {
             return cubes;
         }
-
         boolean mode = modeString.equals("on");
-        log.info("mode = {}", mode);
         for (int x : IntStream.rangeClosed(xStart, xEnd).toArray()) {
             for (int y : IntStream.rangeClosed(yStart, yEnd).toArray()) {
                 for (int z : IntStream.rangeClosed(zStart, zEnd).toArray()) {
@@ -195,17 +163,11 @@ public class Solution {
                 }
             }
         }
-        log.info("turned on after this step: {}", countTurnOnCubes(cubes));
-
         return cubes;
     }
 
     static boolean shouldPerformStep(int sX, int eX, int sY, int eY, int sZ, int eZ) {
-        if (inRange(sX) && inRange(eX) && inRange(sY) && inRange(eY) && inRange(sZ) && inRange(eZ)) {
-            return true;
-        } else {
-            return false;
-        }
+        return inRange(sX) && inRange(eX) && inRange(sY) && inRange(eY) && inRange(sZ) && inRange(eZ);
     }
 
     static boolean inRange(int x) {
@@ -213,8 +175,7 @@ public class Solution {
     }
 
     static boolean[][][] getInitialCubes() {
-        boolean[][][] cubes = new boolean[101][101][101];
-        return cubes;
+        return new boolean[101][101][101];
     }
 }
 
@@ -237,10 +198,11 @@ class Cube {
         this.isOn = isOn;
     }
 
-    public long getVolume() {
-        return ((maxX - minX) + 1)
-                * ((maxY - minY) + 1)
-                * ((maxZ - minZ) + 1);
+    public BigInteger getVolume() {
+        BigInteger bigIntegerX = BigInteger.valueOf((maxX - minX) + 1);
+        BigInteger bigIntegerY = BigInteger.valueOf((maxY - minY) + 1);
+        BigInteger bigIntegerZ = BigInteger.valueOf((maxZ - minZ) + 1);
+        return bigIntegerX.multiply(bigIntegerY).multiply(bigIntegerZ);
     }
 
     @Override

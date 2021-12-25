@@ -1,47 +1,13 @@
 package solutions.day22;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.math.BigInteger;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SolutionTest {
-
-    @Test
-    @Disabled
-    void answerPart1ExampleTest1() throws IOException {
-        URL resource = Solution.class.getResource("/day22_test1.txt");
-        List<String> lines = Files.lines(Paths.get(resource.getPath())).toList();
-        long expected = 39;
-        long actual = Solution.answerPart1(lines);
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    @Disabled
-    void answerPart1ExampleTest2() throws IOException {
-        URL resource = Solution.class.getResource("/day22_test2.txt");
-        List<String> lines = Files.lines(Paths.get(resource.getPath())).toList();
-        long expected = 590784;
-        long actual = Solution.answerPart1(lines);
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    @Disabled
-    void answerPart2ExampleTest1() throws IOException {
-        URL resource = Solution.class.getResource("/day22_test3.txt");
-        List<String> lines = Files.lines(Paths.get(resource.getPath())).toList();
-        long expected = 2758514936282235L;
-        long actual = Solution.answerPart2(lines);
-        assertEquals(expected, actual);
-    }
 
     @Test
     void newSolutionTest1() {
@@ -50,11 +16,10 @@ class SolutionTest {
                 "off x=9..11,y=9..11,z=9..11",
                 "on x=10..10,y=10..10,z=10..10");
 
-        assertEquals(27, Solution.answerPart2(lines.subList(0, 1)));
-        assertEquals(46, Solution.answerPart2(lines.subList(0, 2)));
-//        assertEquals(38, Solution.answerPart2(lines.subList(0, 3)));
-//        assertEquals(39, Solution.answerPart2(lines));
-
+        assertEquals(BigInteger.valueOf(27), Solution.answerPart2(lines.subList(0, 1)));
+        assertEquals(BigInteger.valueOf(46), Solution.answerPart2(lines.subList(0, 2)));
+        assertEquals(BigInteger.valueOf(38), Solution.answerPart2(lines.subList(0, 3)));
+        assertEquals(BigInteger.valueOf(39), Solution.answerPart2(lines));
     }
 
     @Test
@@ -64,14 +29,69 @@ class SolutionTest {
                 "on x=10..12,y=10..12,z=10..12",
                 "on x=10..12,y=10..12,z=10..12");
 
-        assertEquals(27, Solution.answerPart2(lines.subList(0, 1)));
-        assertEquals(27, Solution.answerPart2(lines.subList(0, 2)));
-        assertEquals(27, Solution.answerPart2(lines.subList(0, 3)));
-        assertEquals(27, Solution.answerPart2(lines));
-
+        assertEquals(BigInteger.valueOf(27), Solution.answerPart2(lines.subList(0, 1)));
+        assertEquals(BigInteger.valueOf(27), Solution.answerPart2(lines.subList(0, 2)));
+        assertEquals(BigInteger.valueOf(27), Solution.answerPart2(lines.subList(0, 3)));
+        assertEquals(BigInteger.valueOf(27), Solution.answerPart2(lines));
     }
 
     @Test
-    void answerPart2() {
+    void newSolutionTest3() {
+        List<String> lines = List.of("on x=0..2,y=0..2,z=0..2",
+                "off x=0..2,y=0..2,z=0..2");
+
+        assertEquals(BigInteger.valueOf(0), Solution.answerPart2(lines));
+    }
+
+    @Test
+    void newSolutionTest4() {
+        List<String> lines = List.of("on x=0..1,y=0..1,z=0..1");
+        assertEquals(BigInteger.valueOf(8), Solution.answerPart2(lines));
+    }
+
+    @Test
+    void newSolutionTest5() {
+        List<String> lines = List.of("on x=0..1,y=0..1,z=0..1",
+                "on x=1..2,y=1..2,z=1..2");
+        assertEquals(BigInteger.valueOf(15), Solution.answerPart2(lines));
+    }
+
+    @Test
+    void newSolutionTest6() {
+        List<String> lines = List.of("on x=10..12,y=10..12,z=10..12",
+                "on x=10..12,y=10..12,z=10..12",
+                "on x=10..12,y=10..12,z=10..12");
+        assertEquals(BigInteger.valueOf(27), Solution.answerPart2(lines));
+    }
+
+    @Test
+    void newSolutionTest7() {
+        List<String> lines = List.of("on x=0..2,y=0..2,z=0..2",
+                "off x=2..2,y=2..2,z=2..2");
+
+        assertEquals(BigInteger.valueOf(26), Solution.answerPart2(lines));
+    }
+
+    @Test
+    void newSolutionTest8() {
+        List<String> lines = List.of("off x=0..2,y=0..2,z=0..2");
+
+        assertEquals(BigInteger.valueOf(0), Solution.answerPart2(lines));
+    }
+
+    @Test
+    void newSolutionTest9() {
+        List<String> lines = List.of("off x=0..2,y=0..2,z=0..2",
+                "on x=0..1,y=0..1,z=0..1");
+
+        assertEquals(BigInteger.valueOf(8), Solution.answerPart2(lines));
+    }
+
+    @Test
+    void newSolutionTest10() {
+        List<String> lines = List.of("off x=0..2,y=0..2,z=0..2",
+                "on x=1..1,y=1..1,z=1..1");
+
+        assertEquals(BigInteger.valueOf(1), Solution.answerPart2(lines));
     }
 }
