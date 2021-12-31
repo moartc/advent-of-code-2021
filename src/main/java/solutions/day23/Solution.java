@@ -30,6 +30,49 @@ public class Solution {
         return 12;
     }
 
+    static long makeNextMove(char[][] rooms, char[] hallway, int currentCost) {
+        for(char amphipod : rooms) {
+            if()
+        }
+    }
+
+    public static boolean canAmphipodExitCurrentRoom(int room, int positionInRoom, char[][] rooms) {
+        char c = rooms[positionInRoom][room];
+        int destinationRoom = c-'A';
+        if(positionInRoom > 0) {
+            int currentPosition = positionInRoom;
+            while(currentPosition >0) {
+                if(rooms[currentPosition-1][room] != '.') {
+                    return false;
+                }
+            }
+        }
+    }
+
+    public static Pair<Integer, Integer> getPositionInDestinationRoomAndCostWhenMovingFromHallway(int positionInHallway, char[] hallway, char[][] rooms) {
+        char c = hallway[positionInHallway];
+        int destinationRoom = c - 'A';
+        if(!isRoomAvailable(destinationRoom, rooms)) {
+            return Pair.of(-1,-1);
+        } else {
+            int destinationRoomPositionInHallwayIndex = 2 + destinationRoom*2;
+            int lowerIndex = Math.min(positionInHallway, destinationRoomPositionInHallwayIndex);
+            int higherIndex = Math.max(positionInHallway, destinationRoomPositionInHallwayIndex);
+
+            for(int i = lowerIndex; i <= higherIndex;i++) {
+                if(i == positionInHallway) {
+                    continue;
+                }
+                if(hallway[i] != '.') {
+                    return Pair.of(-1,-1);
+                }
+            }
+            int indexOfDestinationPositionInRoom = getIndexOfFDestinationPositionInRoom(destinationRoom, rooms);
+            int totalDistance = indexOfDestinationPositionInRoom + (higherIndex - lowerIndex) + 1;
+            return Pair.of(indexOfDestinationPositionInRoom, totalDistance);
+        }
+    }
+
     public static Pair<Integer, Integer> canDirectlyMoveToDestinationRoomFromInitialRoom(int room, int positionInRoom, char[][] rooms, char[] hallway) {
         char c = rooms[positionInRoom][room];
         int destinationRoom = c - 'A';

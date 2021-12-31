@@ -129,9 +129,9 @@ class SolutionTest {
     @Test
     void canDirectlyMoveToDestinationRoomFromInitialRoomTest1() {
         char[] hallway = new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
-        char[][] rooms = new char[][]{{'.','A','.','.'}, {'B','C','D','A'}};
+        char[][] rooms = new char[][]{{'.', 'A', '.', '.'}, {'B', 'C', 'D', 'A'}};
 
-        Pair<Integer, Integer> expectedPair = Pair.of(-1,-1);
+        Pair<Integer, Integer> expectedPair = Pair.of(-1, -1);
         Pair<Integer, Integer> actualPair = Solution.canDirectlyMoveToDestinationRoomFromInitialRoom(1, 0, rooms, hallway);
         Assertions.assertEquals(expectedPair.getLeft(), actualPair.getLeft());
         Assertions.assertEquals(expectedPair.getRight(), actualPair.getRight());
@@ -140,9 +140,9 @@ class SolutionTest {
     @Test
     void canDirectlyMoveToDestinationRoomFromInitialRoomTest2() {
         char[] hallway = new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
-        char[][] rooms = new char[][]{{'.','A','.','.'}, {'A','C','D','B'}};
+        char[][] rooms = new char[][]{{'.', 'A', '.', '.'}, {'A', 'C', 'D', 'B'}};
 
-        Pair<Integer, Integer> expectedPair = Pair.of(0,4);
+        Pair<Integer, Integer> expectedPair = Pair.of(0, 4);
         Pair<Integer, Integer> actualPair = Solution.canDirectlyMoveToDestinationRoomFromInitialRoom(1, 0, rooms, hallway);
         Assertions.assertEquals(expectedPair.getLeft(), actualPair.getLeft());
         Assertions.assertEquals(expectedPair.getRight(), actualPair.getRight());
@@ -151,9 +151,9 @@ class SolutionTest {
     @Test
     void canDirectlyMoveToDestinationRoomFromInitialRoomTest3() {
         char[] hallway = new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
-        char[][] rooms = new char[][]{{'.','A','.','.'}, {'.','C','D','B'}};
+        char[][] rooms = new char[][]{{'.', 'A', '.', '.'}, {'.', 'C', 'D', 'B'}};
 
-        Pair<Integer, Integer> expectedPair = Pair.of(1,5);
+        Pair<Integer, Integer> expectedPair = Pair.of(1, 5);
         Pair<Integer, Integer> actualPair = Solution.canDirectlyMoveToDestinationRoomFromInitialRoom(1, 0, rooms, hallway);
         Assertions.assertEquals(expectedPair.getLeft(), actualPair.getLeft());
         Assertions.assertEquals(expectedPair.getRight(), actualPair.getRight());
@@ -161,19 +161,113 @@ class SolutionTest {
 
     @Test
     void isRoomAvailable() {
-        char[][] rooms = new char[][]{{'.','A','.','.'}, {'.','C','D','B'}};
+        char[][] rooms = new char[][]{{'.', 'A', '.', '.'}, {'.', 'C', 'D', 'B'}};
         Assertions.assertTrue(Solution.isRoomAvailable(0, rooms));
         Assertions.assertFalse(Solution.isRoomAvailable(1, rooms));
         Assertions.assertFalse(Solution.isRoomAvailable(2, rooms));
         Assertions.assertFalse(Solution.isRoomAvailable(3, rooms));
 
-        char[][] rooms2 = new char[][]{{'A','A','.','.'}, {'A','C','D','B'}};
+        char[][] rooms2 = new char[][]{{'A', 'A', '.', '.'}, {'A', 'C', 'D', 'B'}};
         Assertions.assertFalse(Solution.isRoomAvailable(0, rooms2));
 
-        char[][] rooms3 = new char[][]{{'.','.','.','.'}, {'A','C','D','B'}};
+        char[][] rooms3 = new char[][]{{'.', '.', '.', '.'}, {'A', 'C', 'D', 'B'}};
         Assertions.assertTrue(Solution.isRoomAvailable(0, rooms3));
         Assertions.assertFalse(Solution.isRoomAvailable(1, rooms3));
         Assertions.assertFalse(Solution.isRoomAvailable(2, rooms3));
         Assertions.assertFalse(Solution.isRoomAvailable(3, rooms3));
+    }
+
+    @Test
+    void getPositionInDestinationRoomAndCostWhenMovingFromHallwayTest1() {
+        char[] hallway = new char[]{'A', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
+        char[][] rooms = new char[][]{{'.', 'A', '.', '.'}, {'.', 'C', 'D', 'B'}};
+
+        Pair<Integer, Integer> expectedPair = Pair.of(1, 4);
+        Pair<Integer, Integer> actualPair = Solution.getPositionInDestinationRoomAndCostWhenMovingFromHallway(0, hallway, rooms);
+        Assertions.assertEquals(expectedPair.getLeft(), actualPair.getLeft());
+        Assertions.assertEquals(expectedPair.getRight(), actualPair.getRight());
+    }
+
+    @Test
+    void getPositionInDestinationRoomAndCostWhenMovingFromHallwayTest2() {
+        char[] hallway = new char[]{'A', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
+        char[][] rooms = new char[][]{{'.', 'A', '.', '.'}, {'A', 'C', 'D', 'B'}};
+
+        Pair<Integer, Integer> expectedPair = Pair.of(0, 3);
+        Pair<Integer, Integer> actualPair = Solution.getPositionInDestinationRoomAndCostWhenMovingFromHallway(0, hallway, rooms);
+        Assertions.assertEquals(expectedPair.getLeft(), actualPair.getLeft());
+        Assertions.assertEquals(expectedPair.getRight(), actualPair.getRight());
+    }
+
+    @Test
+    void getPositionInDestinationRoomAndCostWhenMovingFromHallwayTest3() {
+        char[] hallway = new char[]{'B', '.', '.', '.', '.', '.', '.', '.', 'A', '.', '.'};
+        char[][] rooms = new char[][]{{'.', 'A', '.', '.'}, {'A', 'C', 'D', 'B'}};
+
+        Pair<Integer, Integer> expectedPair = Pair.of(0, 7);
+        Pair<Integer, Integer> actualPair = Solution.getPositionInDestinationRoomAndCostWhenMovingFromHallway(8, hallway, rooms);
+        Assertions.assertEquals(expectedPair.getLeft(), actualPair.getLeft());
+        Assertions.assertEquals(expectedPair.getRight(), actualPair.getRight());
+    }
+
+    @Test
+    void getPositionInDestinationRoomAndCostWhenMovingFromHallwayTest4() {
+        char[] hallway = new char[]{'B', '.', '.', 'C', '.', '.', '.', '.', 'A', '.', '.'};
+        char[][] rooms = new char[][]{{'.', 'A', '.', '.'}, {'A', 'C', 'D', 'B'}};
+
+        Pair<Integer, Integer> expectedPair = Pair.of(-1, -1);
+        Pair<Integer, Integer> actualPair = Solution.getPositionInDestinationRoomAndCostWhenMovingFromHallway(8, hallway, rooms);
+        Assertions.assertEquals(expectedPair.getLeft(), actualPair.getLeft());
+        Assertions.assertEquals(expectedPair.getRight(), actualPair.getRight());
+    }
+
+    @Test
+    void canAmphipodExitCurrentRoomTest1() {
+        /*
+        ###.#A#.#.###
+          #A#C#D#B#
+         */
+        char[][] rooms = new char[][]{{'.', 'A', '.', '.'}, {'A', 'C', 'D', 'B'}};
+        // it's in destination room
+        Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(0, 1, rooms));
+        // it's blocked
+        Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(1, 1, rooms));
+
+        Assertions.assertTrue(Solution.canAmphipodExitCurrentRoom(1, 0, rooms));
+
+        // destination room contains incorrect aphipods
+        Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(2, 1, rooms));
+
+        // destination room contains incorrect aphipods and room is full
+        Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(3, 1, rooms));
+    }
+
+    @Test
+    void canAmphipodExitCurrentRoomTest2() {
+        /*
+        ###.#.#.#.###
+          #A#B#.#.#
+          #A#B#C#.#
+          #A#C#C#D#
+         */
+        char[][] rooms = new char[][]{{'.', '.', '.', '.'}, {'A', 'B', 'D', 'B'}, {'A', 'B', 'C', 'D'}, {'A', 'C', 'C', 'D'}};
+        // it's in destination room
+        Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(0, 1, rooms));
+        Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(0, 2, rooms));
+        Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(0, 3, rooms));
+
+        // it's in destination, but the room contains incorrect amphipod
+        Assertions.assertTrue(Solution.canAmphipodExitCurrentRoom(1, 1, rooms));
+        // it's blocked
+        Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(1, 2, rooms));
+        Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(1, 3, rooms));
+
+        // it's in destination room
+        Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(2, 2, rooms));
+        // it's blocked but also it's in destination room
+        Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(2, 3, rooms));
+
+        // it's in destination room
+        Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(3, 3, rooms));
     }
 }
