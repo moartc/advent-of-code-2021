@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,56 +16,174 @@ import java.util.Map;
 public class Solution {
 
     private static Logger log = LogManager.getLogger();
+    static int lowestCost = Integer.MAX_VALUE;
 
     public static void main(String[] args) throws IOException {
 
         URL resource = solutions.day16.Solution.class.getResource("/day23.txt");
-        List<String> lines = Files.lines(Paths.get(resource.getPath())).toList();
-
+        List<String> lines = Files.readAllLines(Paths.get(resource.getPath()));
+        System.out.println("part1 = " + answerPart1(lines));
+        System.out.println("part2 = " + answerPart2(lines));
     }
 
     static long answerPart1(List<String> input) {
+        lowestCost = Integer.MAX_VALUE;
         char[] hallway = new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
         char[][] rooms = createInitialRoomState(input);
-        printBurrow(hallway, rooms);
-        return 12;
+        return simulateMoves(rooms, hallway, 0);
     }
 
-    static long makeNextMove(char[][] rooms, char[] hallway, int currentCost) {
-        for(char amphipod : rooms) {
-            if()
+    static long answerPart2(List<String> input) {
+        input.add(3, "  #D#C#B#A#");
+        input.add(4, "  #D#B#A#C#");
+        lowestCost = Integer.MAX_VALUE;
+        char[] hallway = new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
+        char[][] rooms = createInitialRoomState(input);
+        return simulateMoves(rooms, hallway, 0);
+    }
+
+    static boolean isGameFinished(char[][] rooms) {
+        for (int i = 0; i < 4; i++) {
+            if (!isRoomFullyCompleted(i, rooms)) {
+                return false;
+            }
         }
+        return true;
+    }
+
+    static char[][] getRoomCopy(char[][] original) {
+        char[][] rooms = Arrays.stream(original).map(char[]::clone).toArray(char[][]::new);
+        return rooms;
+    }
+
+    static char[] getHallwayCopy(char[] original) {
+        return Arrays.copyOf(original, original.length);
+    }
+
+    static long simulateMoves(char[][] rooms, char[] hallway, int currentCost) {
+        if (currentCost > lowestCost)
+            return currentCost;
+        if (isGameFinished(rooms)) {
+            if (currentCost < lowestCost) {
+                log.debug("found lowest = {}", currentCost);
+                lowestCost = currentCost;
+            }
+            return currentCost;
+        }
+        for (int roomNo = 0; roomNo < 4; roomNo++) {
+            for (int positionInRoom = 0; positionInRoom < rooms.length; positionInRoom++) {
+                if (rooms[positionInRoom][roomNo] == '.') {
+                    continue;
+                }
+                if (canAmphipodExitCurrentRoom(roomNo, positionInRoom, rooms)) {
+
+                    Map<Integer, Integer> possibleMovePositionsFromRoomWithLength = getPossibleMovePositionsFromRoomWithLength(roomNo, positionInRoom, rooms, hallway);
+                    for (Map.Entry<Integer, Integer> integerIntegerEntry : possibleMovePositionsFromRoomWithLength.entrySet()) {
+                        var localCopyRooms = getRoomCopy(rooms);
+                        var localCopyHallway = getHallwayCopy(hallway);
+                        int newCost = moveFromRoomToHallway(roomNo, positionInRoom, localCopyRooms, localCopyHallway, currentCost, Pair.of(integerIntegerEntry.getKey(), integerIntegerEntry.getValue()));
+                        simulateMoves(localCopyRooms, localCopyHallway, newCost);
+                    }
+                }
+            }
+        }
+        for (int hallwayPosition = 0; hallwayPosition < 11; hallwayPosition++) {
+            if (hallway[hallwayPosition] != '.') {
+                var roomsCopy = getRoomCopy(rooms);
+                var hallwayCopy = getHallwayCopy(hallway);
+                Pair<Integer, Integer> positionInDestinationRoomAndCostWhenMovingFromHallway = getPositionInDestinationRoomAndCostWhenMovingFromHallway(hallwayPosition, hallwayCopy, roomsCopy);
+                if (positionInDestinationRoomAndCostWhenMovingFromHallway.getLeft() != -1) {
+                    int newCost = moveFromHallwayToDestinationRoom(hallwayPosition, roomsCopy, hallwayCopy, currentCost, positionInDestinationRoomAndCostWhenMovingFromHallway);
+                    simulateMoves(roomsCopy, hallwayCopy, newCost);
+                }
+            }
+        }
+        return lowestCost;
+    }
+
+    static int getCostMultiplier(char c) {
+        return (int) Math.pow(10, c - 'A');
+    }
+
+    static int moveFromRoomToDestinationRoom(int currentRoom, int currentPositionInRoom, char[][] rooms, int currentConst, Pair<Integer, Integer> newPositionAndCostOfMove) {
+        char c = rooms[currentPositionInRoom][currentRoom];
+        int destinationRoom = c - 'A';
+        rooms[currentPositionInRoom][currentRoom] = '.';
+        rooms[newPositionAndCostOfMove.getLeft()][destinationRoom] = c;
+        currentConst += getCostMultiplier(c) * newPositionAndCostOfMove.getRight();
+        return currentConst;
+    }
+
+    static int moveFromHallwayToDestinationRoom(int position, char[][] rooms, char[] hallway, int currentConst, Pair<Integer, Integer> newPositionAndCostOfMove) {
+        char c = hallway[position];
+        int destinationRoom = c - 'A';
+        hallway[position] = '.';
+        rooms[newPositionAndCostOfMove.getLeft()][destinationRoom] = c;
+        currentConst += getCostMultiplier(c) * newPositionAndCostOfMove.getRight();
+        return currentConst;
+    }
+
+    static int moveFromRoomToHallway(int room, int positionInRoom, char[][] rooms, char[] hallway, int currentConst, Pair<Integer, Integer> newPositionAndCostOfMove) {
+        char c = rooms[positionInRoom][room];
+        hallway[newPositionAndCostOfMove.getLeft()] = c;
+        rooms[positionInRoom][room] = '.';
+        currentConst += getCostMultiplier(c) * newPositionAndCostOfMove.getRight();
+        return currentConst;
     }
 
     public static boolean canAmphipodExitCurrentRoom(int room, int positionInRoom, char[][] rooms) {
         char c = rooms[positionInRoom][room];
-        int destinationRoom = c-'A';
-        if(positionInRoom > 0) {
-            int currentPosition = positionInRoom;
-            while(currentPosition >0) {
-                if(rooms[currentPosition-1][room] != '.') {
+        if (positionInRoom > 0) {
+            int tempPosition = positionInRoom;
+            while (tempPosition > 0) {
+                if (rooms[tempPosition - 1][room] != '.') {
                     return false;
                 }
+                tempPosition--;
             }
         }
+        if (isRoomCorrectlyFilled(room, rooms)) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean isRoomFullyCompleted(int room, char[][] rooms) {
+        char expectedType = (char) ('A' + room);
+        for (int i = 0; i < rooms.length; i++) {
+            if (rooms[i][room] != expectedType) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean isRoomCorrectlyFilled(int room, char[][] rooms) {
+        char expectedType = (char) ('A' + room);
+        for (int i = 0; i < rooms.length; i++) {
+            if (rooms[i][room] != expectedType && rooms[i][room] != '.') {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static Pair<Integer, Integer> getPositionInDestinationRoomAndCostWhenMovingFromHallway(int positionInHallway, char[] hallway, char[][] rooms) {
         char c = hallway[positionInHallway];
         int destinationRoom = c - 'A';
-        if(!isRoomAvailable(destinationRoom, rooms)) {
-            return Pair.of(-1,-1);
+        if (!isRoomAvailable(destinationRoom, rooms) || !isRoomCorrectlyFilled(destinationRoom, rooms)) {
+            return Pair.of(-1, -1);
         } else {
-            int destinationRoomPositionInHallwayIndex = 2 + destinationRoom*2;
+            int destinationRoomPositionInHallwayIndex = 2 + destinationRoom * 2;
             int lowerIndex = Math.min(positionInHallway, destinationRoomPositionInHallwayIndex);
             int higherIndex = Math.max(positionInHallway, destinationRoomPositionInHallwayIndex);
 
-            for(int i = lowerIndex; i <= higherIndex;i++) {
-                if(i == positionInHallway) {
+            for (int i = lowerIndex; i <= higherIndex; i++) {
+                if (i == positionInHallway) {
                     continue;
                 }
-                if(hallway[i] != '.') {
-                    return Pair.of(-1,-1);
+                if (hallway[i] != '.') {
+                    return Pair.of(-1, -1);
                 }
             }
             int indexOfDestinationPositionInRoom = getIndexOfFDestinationPositionInRoom(destinationRoom, rooms);
@@ -73,43 +192,24 @@ public class Solution {
         }
     }
 
-    public static Pair<Integer, Integer> canDirectlyMoveToDestinationRoomFromInitialRoom(int room, int positionInRoom, char[][] rooms, char[] hallway) {
-        char c = rooms[positionInRoom][room];
-        int destinationRoom = c - 'A';
-        if(!isRoomAvailable(destinationRoom, rooms)) {
-            return Pair.of(-1,-1);
-        } else {
-            int lowerIndexRoom = Math.min(room, destinationRoom);
-            int higherIndexRoom = Math.max(room, destinationRoom);
-            for(int i = 2 + (2*lowerIndexRoom); i <= 2 + (2*higherIndexRoom);i++) {
-                if(hallway[i] != '.') {
-                    return Pair.of(-1,-1);
-                }
-            }
-            int indexOfFDestinationPositionInRoom = getIndexOfFDestinationPositionInRoom(destinationRoom, rooms);
-            int totalDistance = positionInRoom + indexOfFDestinationPositionInRoom + (higherIndexRoom - lowerIndexRoom)*2 + 2;
-            return Pair.of(indexOfFDestinationPositionInRoom, totalDistance);
-        }
-    }
-
     public static int getIndexOfFDestinationPositionInRoom(int roomNumber, char[][] rooms) {
-        for(int i = 0; i < rooms.length; i++) {
-            if(rooms[i][roomNumber] != '.') {
-                return i-1;
+        for (int i = 0; i < rooms.length; i++) {
+            if (rooms[i][roomNumber] != '.') {
+                return i - 1;
             }
         }
-        return rooms.length -1;
+        return rooms.length - 1;
     }
 
     public static boolean isRoomAvailable(int room, char[][] rooms) {
-        if(rooms[0][room] != '.') {
+        if (rooms[0][room] != '.') {
             return false;
         }
-        for(int i = 1; i < rooms.length; i++) {
-            char roomType = (char) ('A' - room);
-            if(rooms[i][room] == '.') {
+        for (int i = 1; i < rooms.length; i++) {
+            char roomType = (char) ('A' + room);
+            if (rooms[i][room] == '.') {
                 return true;
-            } else if(rooms[i][room] != roomType) {
+            } else if (rooms[i][room] != roomType) {
                 return false;
             }
         }
@@ -121,9 +221,10 @@ public class Solution {
         if (positionInRoom > 0) { // if it's not in the first position
             int tempPosition = positionInRoom;
             while (tempPosition > 0) {
-                if (rooms[room][tempPosition] != '.') {
+                if (rooms[tempPosition - 1][room] != '.') {
                     return positionsWithLength;
                 }
+                tempPosition--;
             }
         }
         if (room == 0) {
@@ -231,18 +332,18 @@ public class Solution {
         return rooms;
     }
 
-    private static void printBurrow(char[] hallway, char rooms[][]) {
-        System.out.println("#############");
-        System.out.print("#");
+    private static String createPrintableBurrow(char[] hallway, char rooms[][]) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("#");
         for (char c : hallway) {
-            System.out.print(c);
+            sb.append(c);
         }
-        System.out.println("#");
-        System.out.println("###" + rooms[0][0] + "#" + rooms[0][1] + "#" + rooms[0][2] + "#" + rooms[0][3] + "###");
+        sb.append("#\n");
+        sb.append("###" + rooms[0][0] + "#" + rooms[0][1] + "#" + rooms[0][2] + "#" + rooms[0][3] + "###\n");
         for (int i = 1; i < rooms.length; i++) {
-            System.out.println("  #" + rooms[i][0] + "#" + rooms[i][1] + "#" + rooms[i][2] + "#" + rooms[i][3] + "#");
+            sb.append("  #" + rooms[i][0] + "#" + rooms[i][1] + "#" + rooms[i][2] + "#" + rooms[i][3] + "#\n");
         }
-        System.out.println("  #########");
+        return sb.toString();
     }
 }
 

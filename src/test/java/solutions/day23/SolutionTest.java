@@ -2,14 +2,12 @@ package solutions.day23;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -17,20 +15,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 class SolutionTest {
 
-    private Solution solution = new Solution();
-    private URL resource = solutions.day16.Solution.class.getResource("/day23_example.txt");
 
-    @Test
-    void answerPart1ExampleTest() throws IOException {
-        List<String> lines = Files.lines(Paths.get(resource.getPath())).toList();
-        solution.answerPart1(lines);
+    @BeforeEach
+    void setUp() {
+        Solution.lowestCost = Integer.MAX_VALUE;
     }
 
     @Test
-    void getPossibleMovePositionsWithLengthTest1() throws IOException {
-        List<String> lines = Files.lines(Paths.get(resource.getPath())).toList();
+    void getPossibleMovePositionsWithLengthTest1()   {
         char[] hallway = new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
-        char[][] rooms = Solution.createInitialRoomState(lines);
+        char[][] rooms = getExampleRoom();
 
         Map<Integer, Integer> expectedMap = new HashMap<>();
         expectedMap.put(0, 3);
@@ -50,10 +44,9 @@ class SolutionTest {
     }
 
     @Test
-    void getPossibleMovePositionsWithLengthTest2() throws IOException {
-        List<String> lines = Files.lines(Paths.get(resource.getPath())).toList();
+    void getPossibleMovePositionsWithLengthTest2() {
         char[] hallway = new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
-        char[][] rooms = Solution.createInitialRoomState(lines);
+        char[][] rooms = getExampleRoom();
 
         Map<Integer, Integer> expectedMap = new HashMap<>();
         expectedMap.put(0, 5);
@@ -70,10 +63,9 @@ class SolutionTest {
     }
 
     @Test
-    void getPossibleMovePositionsWithLengthTest3() throws IOException {
-        List<String> lines = Files.lines(Paths.get(resource.getPath())).toList();
+    void getPossibleMovePositionsWithLengthTest3() {
         char[] hallway = new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
-        char[][] rooms = Solution.createInitialRoomState(lines);
+        char[][] rooms = getExampleRoom();
 
         Map<Integer, Integer> expectedMap = new HashMap<>();
         expectedMap.put(0, 7);
@@ -90,10 +82,9 @@ class SolutionTest {
     }
 
     @Test
-    void getPossibleMovePositionsWithLengthTest4() throws IOException {
-        List<String> lines = Files.lines(Paths.get(resource.getPath())).toList();
+    void getPossibleMovePositionsWithLengthTest4() {
         char[] hallway = new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
-        char[][] rooms = Solution.createInitialRoomState(lines);
+        char[][] rooms = getExampleRoom();
 
         Map<Integer, Integer> expectedMap = new HashMap<>();
         expectedMap.put(0, 9);
@@ -110,10 +101,9 @@ class SolutionTest {
     }
 
     @Test
-    void getPossibleMovePositionsWithLengthTest5() throws IOException {
-        List<String> lines = Files.lines(Paths.get(resource.getPath())).toList();
+    void getPossibleMovePositionsWithLengthTest5() {
         char[] hallway = new char[]{'.', '.', '.', 'A', '.', '.', '.', '.', '.', '.', '.'};
-        char[][] rooms = Solution.createInitialRoomState(lines);
+        char[][] rooms = getExampleRoom();
 
         Map<Integer, Integer> expectedMap = new HashMap<>();
         expectedMap.put(5, 2);
@@ -124,39 +114,6 @@ class SolutionTest {
         Map<Integer, Integer> actualMap = Solution.getPossibleMovePositionsFromRoomWithLength(2, 0, rooms, hallway);
         assertThat(actualMap.size(), is(4));
         assertThat(actualMap, is(expectedMap));
-    }
-
-    @Test
-    void canDirectlyMoveToDestinationRoomFromInitialRoomTest1() {
-        char[] hallway = new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
-        char[][] rooms = new char[][]{{'.', 'A', '.', '.'}, {'B', 'C', 'D', 'A'}};
-
-        Pair<Integer, Integer> expectedPair = Pair.of(-1, -1);
-        Pair<Integer, Integer> actualPair = Solution.canDirectlyMoveToDestinationRoomFromInitialRoom(1, 0, rooms, hallway);
-        Assertions.assertEquals(expectedPair.getLeft(), actualPair.getLeft());
-        Assertions.assertEquals(expectedPair.getRight(), actualPair.getRight());
-    }
-
-    @Test
-    void canDirectlyMoveToDestinationRoomFromInitialRoomTest2() {
-        char[] hallway = new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
-        char[][] rooms = new char[][]{{'.', 'A', '.', '.'}, {'A', 'C', 'D', 'B'}};
-
-        Pair<Integer, Integer> expectedPair = Pair.of(0, 4);
-        Pair<Integer, Integer> actualPair = Solution.canDirectlyMoveToDestinationRoomFromInitialRoom(1, 0, rooms, hallway);
-        Assertions.assertEquals(expectedPair.getLeft(), actualPair.getLeft());
-        Assertions.assertEquals(expectedPair.getRight(), actualPair.getRight());
-    }
-
-    @Test
-    void canDirectlyMoveToDestinationRoomFromInitialRoomTest3() {
-        char[] hallway = new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
-        char[][] rooms = new char[][]{{'.', 'A', '.', '.'}, {'.', 'C', 'D', 'B'}};
-
-        Pair<Integer, Integer> expectedPair = Pair.of(1, 5);
-        Pair<Integer, Integer> actualPair = Solution.canDirectlyMoveToDestinationRoomFromInitialRoom(1, 0, rooms, hallway);
-        Assertions.assertEquals(expectedPair.getLeft(), actualPair.getLeft());
-        Assertions.assertEquals(expectedPair.getRight(), actualPair.getRight());
     }
 
     @Test
@@ -236,21 +193,21 @@ class SolutionTest {
         Assertions.assertTrue(Solution.canAmphipodExitCurrentRoom(1, 0, rooms));
 
         // destination room contains incorrect aphipods
-        Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(2, 1, rooms));
+        Assertions.assertTrue(Solution.canAmphipodExitCurrentRoom(2, 1, rooms));
 
         // destination room contains incorrect aphipods and room is full
-        Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(3, 1, rooms));
+        Assertions.assertTrue(Solution.canAmphipodExitCurrentRoom(3, 1, rooms));
     }
 
     @Test
     void canAmphipodExitCurrentRoomTest2() {
         /*
         ###.#.#.#.###
-          #A#B#.#.#
-          #A#B#C#.#
+          #A#B#.#B#
+          #A#B#C#D#
           #A#C#C#D#
          */
-        char[][] rooms = new char[][]{{'.', '.', '.', '.'}, {'A', 'B', 'D', 'B'}, {'A', 'B', 'C', 'D'}, {'A', 'C', 'C', 'D'}};
+        char[][] rooms = new char[][]{{'.', '.', '.', '.'}, {'A', 'B', '.', 'B'}, {'A', 'B', 'C', 'D'}, {'A', 'C', 'C', 'D'}};
         // it's in destination room
         Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(0, 1, rooms));
         Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(0, 2, rooms));
@@ -269,5 +226,168 @@ class SolutionTest {
 
         // it's in destination room
         Assertions.assertFalse(Solution.canAmphipodExitCurrentRoom(3, 3, rooms));
+    }
+
+    @Test
+    void isRoomFullyCompleted() {
+        /*
+        ###A#B#.#.###
+          #A#B#.#.#
+          #A#B#C#.#
+          #A#C#C#D#
+         */
+        char[][] rooms = new char[][]{{'A', 'B', '.', '.'}, {'A', 'B', '.', '.'}, {'A', 'B', 'C', '.'}, {'A', 'C', 'C', 'D'}};
+        Assertions.assertTrue(Solution.isRoomFullyCompleted(0, rooms));
+        Assertions.assertFalse(Solution.isRoomFullyCompleted(1, rooms));
+        Assertions.assertFalse(Solution.isRoomFullyCompleted(2, rooms));
+        Assertions.assertFalse(Solution.isRoomFullyCompleted(3, rooms));
+
+    }
+
+    @Test
+    void isRoomCorrectlyFilled() {
+        /*
+        ###A#B#.#.###
+          #A#B#.#.#
+          #A#B#C#.#
+          #A#C#C#D#
+         */
+        char[][] rooms = new char[][]{{'A', 'B', '.', '.'}, {'A', 'B', '.', '.'}, {'A', 'B', 'C', '.'}, {'A', 'C', 'C', 'D'}};
+        Assertions.assertTrue(Solution.isRoomCorrectlyFilled(0, rooms));
+        Assertions.assertFalse(Solution.isRoomCorrectlyFilled(1, rooms));
+        Assertions.assertTrue(Solution.isRoomCorrectlyFilled(2, rooms));
+        Assertions.assertTrue(Solution.isRoomCorrectlyFilled(3, rooms));
+    }
+
+    @Test
+    void getPossibleNextMovesTest1() {      // to remove, test nothing actually
+        char[] hallway = new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
+        char[][] rooms = new char[][]{{'B', 'C', 'B', 'D'}, {'A', 'D', 'C', 'A'}};
+        Solution.simulateMoves(rooms, hallway, 0);
+    }
+
+    @Test
+    void simulateMovesLastMoveTest() {
+        /*
+        #############
+        #...A.......#
+        ###.#B#C#D###
+          #A#B#C#D#
+         */
+        char[] hallway = new char[]{'.', '.', '.', 'A', '.', '.', '.', '.', '.', '.', '.'};
+        char[][] rooms = new char[][]{{'.', 'B', 'C', 'D'}, {'A', 'B', 'C', 'D'}};
+        int currentCost = 100;
+        long finalCost = Solution.simulateMoves(rooms, hallway, currentCost);
+        Assertions.assertEquals(102, finalCost);
+    }
+
+    @Test
+    void simulateMovesLast2MovesTest() {
+        /*
+        #############
+        #...A.B.....#
+        ###.#.#C#D###
+          #A#B#C#D#
+         */
+        char[] hallway = new char[]{'.', '.', '.', 'A', '.', 'B', '.', '.', '.', '.', '.'};
+        char[][] rooms = new char[][]{{'.', '.', 'C', 'D'}, {'A', 'B', 'C', 'D'}};
+        int currentCost = 100;
+        long finalCost = Solution.simulateMoves(rooms, hallway, currentCost);
+        Assertions.assertEquals(100 + 20 + 2, finalCost);
+    }
+
+    @Test
+    void simulateMovesLast3MovesTest() {
+        /*
+        #############
+        #.....B...C.#
+        ###.#.#A#D###
+          #A#B#C#D#
+         */
+        char[] hallway = new char[]{'.', '.', '.', '.', '.', 'B', '.', '.', '.', 'C', '.'};
+        char[][] rooms = new char[][]{{'.', '.', 'A', 'D'}, {'A', 'B', 'C', 'D'}};
+        int currentCost = 100;
+        long finalCost = Solution.simulateMoves(rooms, hallway, currentCost);
+        Assertions.assertEquals(100 + 20 + 6 + 400, finalCost);
+    }
+
+    @Test
+    void simulateMovesOneRowEasyExampleTest() {
+        /*
+        #############
+        #...........#
+        ###B#A#C#D### = 46
+          #A#B#C#D#
+         */
+        char[] hallway = new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
+        char[][] rooms = new char[][]{{'B', 'A', 'C', 'D'}, {'A', 'B', 'C', 'D'}};
+        int currentCost = 0;
+        long finalCost = Solution.simulateMoves(rooms, hallway, currentCost);
+        Assertions.assertEquals(46, finalCost);
+    }
+
+    @Test
+    void simulateMovesExampleTest() {
+        /*
+        #############
+        #...........#
+        ###B#C#B#D###
+          #A#D#C#A#
+         */
+        char[] hallway = new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
+        char[][] rooms = new char[][]{{'B', 'C', 'B', 'D'}, {'A', 'D', 'C', 'A'}};
+        int currentCost = 0;
+        long finalCost = Solution.simulateMoves(rooms, hallway, currentCost);
+        Assertions.assertEquals(12521, finalCost);
+    }
+
+    @Test
+    void simulateMovesExamplePart2FinalStepsTest() {
+        /*
+        #############
+        #AA.......AA#
+        ###.#B#C#D###
+          #.#B#C#D#
+          #.#B#C#D#
+          #.#B#C#D#
+         */
+        char[] hallway = new char[]{'A', 'A', '.', '.', '.', '.', '.', '.', '.', 'A', 'A'};
+        char[][] rooms = new char[][]{
+                {'.', 'B', 'C', 'D'},
+                {'.', 'B', 'C', 'D'},
+                {'.', 'B', 'C', 'D'},
+                {'.', 'B', 'C', 'D'}
+        };
+        int currentCost = 0;
+        long finalCost = Solution.simulateMoves(rooms, hallway, currentCost);
+        Assertions.assertEquals(5 + 5 + 9 + 9, finalCost);
+    }
+
+    @Test
+    @Disabled
+    void simulateMovesExamplePart2Test() {
+        /*
+        #############
+        #...........#
+        ###B#C#B#D###
+          #D#C#B#A#
+          #D#B#A#C#
+          #A#D#C#A#
+          #########
+         */
+        char[] hallway = new char[]{'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
+        char[][] rooms = new char[][]{
+                {'B', 'C', 'B', 'D'},
+                {'D', 'C', 'B', 'A'},
+                {'D', 'B', 'A', 'C'},
+                {'A', 'D', 'C', 'A'}
+        };
+        int currentCost = 0;
+        long finalCost = Solution.simulateMoves(rooms, hallway, currentCost);
+        Assertions.assertEquals(44169, finalCost);
+    }
+
+    private char[][] getExampleRoom() {
+        return new char[][]{{'B', 'C', 'B', 'D'}, {'A', 'D', 'C', 'A'}};
     }
 }
